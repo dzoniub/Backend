@@ -1,0 +1,27 @@
+# Learn more about services, parameters and containers at
+# https://symfony.com/doc/current/service_container.html
+parameters:
+    app_bundle.cors.origins: [http://localhost:63342]
+    image_dir: '%kernel.root_dir%/../web/uploads/images/'
+
+services:
+    app.tokens.action_listener:
+        class: AppBundle\EventListener\CorsListener
+        arguments: ['%app_bundle.cors.origins%']
+        tags:
+              - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse}
+              - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 300}
+    app.note.remove_listener:
+        class: AppBundle\EventListener\NoteListener
+        arguments: ['%image_dir%']
+        tags:
+              - { name: doctrine.event_listener, event: preRemove }
+    app.controller_check_request:
+        class: AppBundle\EventListener\ControllerCheckRequestListener
+        arguments: ['@annotation_reader']
+        tags:
+              - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
+    app.controller.exception_listener:
+        class: AppBundle\EventListener\ExceptionListener
+        tags:
+              - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
